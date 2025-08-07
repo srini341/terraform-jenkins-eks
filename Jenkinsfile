@@ -9,7 +9,8 @@ pipeline {
         stage('Checkout SCM'){
             steps{
                 script{
-                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/gauri17-pro/terraform-jenkins-eks.git']])
+                    checkout scmGit(branches: [[name: '*/feature/060825']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/srini341/terraform-jenkins-eks.git']])
+
                 }
             }
         }
@@ -72,3 +73,4 @@ pipeline {
         }
     }
 }
+
