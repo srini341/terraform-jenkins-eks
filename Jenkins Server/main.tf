@@ -1,84 +1,95 @@
-# VPC
-module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+provider "aws" {
+  region = "us-east-1"
+}
 
-  name = "jenkins-vpc"
-  cidr = var.vpc_cidr
+# --- Networking ---
+resource "aws_vpc" "jenkins_vpc" {
+  cidr_block = "10.0.0.0/16"
+  tags       = { Name = "jenkins-vpc" }
+}
 
-  azs                     = data.aws_availability_zones.azs.names
-  public_subnets          = var.public_subnets
+resource "aws_subnet" "jenkins_subnet" {
+  vpc_id                  = aws_vpc.jenkins_vpc.id
+  cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true
+}
 
-  enable_dns_hostnames = true
+resource "aws_internet_gateway" "jenkins_igw" {
+  vpc_id = aws_vpc.jenkins_vpc.id
+}
 
-  tags = {
-    Name        = "jenkins-vpc"
-    Terraform   = "true"
-    Environment = "dev"
-  }
-
-  public_subnet_tags = {
-    Name = "jenkins-subnet"
+resource "aws_route_table" "jenkins_route_table" {
+  vpc_id = aws_vpc.jenkins_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.jenkins_igw.id
   }
 }
 
-# SG
-module "sg" {
-  source = "terraform-aws-modules/security-group/aws"
+resource "aws_route_table_association" "jenkins_route_assoc" {
+  subnet_id      = aws_subnet.jenkins_subnet.id
+  route_table_id = aws_route_table.jenkins_route_table.id
+}
 
-  name        = "jenkins-sg"
-  description = "Security Group for Jenkins Server"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = 8080
-      to_port     = 8080
-      protocol    = "tcp"
-      description = "HTTP"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      description = "SSH"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-
-  egress_with_cidr_blocks = [
-    {
-      from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = "0.0.0.0/0"
-    }
-  ]
-
-  tags = {
-    Name = "jenkins-sg"
+# --- Security Group for Jenkins ---
+resource "aws_security_group" "jenkins_sg" {
+  vpc_id = aws_vpc.jenkins_vpc.id
+  name   = "jenkins-security-group"
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-# EC2
-module "ec2_instance" {
-  source = "terraform-aws-modules/ec2-instance/aws"
+# --- IAM Role for Jenkins EC2 ---
+resource "aws_iam_role" "jenkins_role" {
+  name = "jenkins-ec2-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
 
-  name = "Jenkins-Server"
+resource "aws_iam_instance_profile" "jenkins_profile" {
+  name = "jenkins-ec2-profile"
+  role = aws_iam_role.jenkins_role.name
+}
 
-  instance_type               = var.instance_type
+# --- Jenkins EC2 Instance ---
+resource "aws_instance" "jenkins" {
+  ami                         = "ami-084a7d336e816906b" # Amazon Linux 2 AMI in us-east-1
+  instance_type               = "t2.medium"
   key_name                    = "EKS"
-  monitoring                  = true
-  vpc_security_group_ids      = [module.sg.security_group_id]
-  subnet_id                   = module.vpc.public_subnets[0]
+  subnet_id                   = aws_subnet.jenkins_subnet.id
+  vpc_security_group_ids      = [aws_security_group.jenkins_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.jenkins_profile.name
   associate_public_ip_address = true
   user_data                   = file("jenkins-install.sh")
-  availability_zone           = data.aws_availability_zones.azs.names[0]
-
   tags = {
-    Name        = "Jenkins-Server"
-    Terraform   = "true"
-    Environment = "dev"
+    Name = "Jenkins-Server"
   }
+}
+
+output "jenkins_public_ip" {
+  value = aws_instance.jenkins.public_ip
 }

@@ -1,15 +1,15 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_ACCESS_KEY_ID = credentials('Access key ID')
+        AWS_SECRET_ACCESS_KEY = credentials('Secret access key')
         AWS_DEFAULT_REGION = "us-east-1"
     }
     stages {
         stage('Checkout SCM'){
             steps{
                 script{
-                    checkout scmGit(branches: [[name: '*/feature/060825']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/srini341/terraform-jenkins-eks.git']])
+                    checkout scmGit(branches: [[name: '*/feature/070825']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/srini341/terraform-jenkins-eks.git']])
 
                 }
             }
