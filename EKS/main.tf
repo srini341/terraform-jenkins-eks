@@ -6,7 +6,7 @@ provider "aws" {
 # --- VPC Module ---
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.1.0"
+  version = "5.0.0"
 
   name = "eks-vpc"
   cidr = "10.0.0.0/16"
@@ -15,8 +15,8 @@ module "vpc" {
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
   enable_dns_hostnames = true
 
   tags = {
@@ -27,12 +27,12 @@ module "vpc" {
 # --- EKS Cluster Module ---
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "18.31.0"
+  version = "21.0.7"
 
-  cluster_name    = "eks-cluster"
-  cluster_version = "1.23"
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnets
+  name               = "eks-cluster"
+  kubernetes_version = "1.30"
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.vpc.private_subnets
 
   # --- EKS Managed Node Group ---
   eks_managed_node_groups = {
@@ -45,7 +45,8 @@ module "eks" {
 
       # The managed node group security group needs a tag for the cluster to find it
       tags = {
-        "Name" = "eks-node-group"
+        "Name"                              = "eks-node-group"
+        "kubernetes.io/cluster/eks-cluster" = "owned"
       }
     }
   }
