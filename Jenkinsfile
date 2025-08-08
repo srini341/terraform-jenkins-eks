@@ -32,16 +32,7 @@ pipeline {
                 }
             }
         }
-        stage('Validating Terraform'){
-            steps{
-                script{
-                    dir('EKS'){
-                        sh 'terraform validate'
-                    }
-                }
-            }
-        }
-        stage('Previewing the Infra using Terraform'){
+       stage('Previewing the Infra using Terraform'){
             steps{
                 script{
                     dir('EKS'){
@@ -73,4 +64,5 @@ pipeline {
         }
     }
 }
+
 
