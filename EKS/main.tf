@@ -14,7 +14,7 @@ module "vpc" {
   single_nat_gateway   = true
 
   tags = {
-    "kubernetes.io/cluster/my-eks-cluster" = "shared"
+    "kubernetes.io/cluster/my-eks-cluster" = "owned"
   }
 
   public_subnet_tags = {
@@ -54,4 +54,5 @@ module "eks" {
     Environment = "dev"
     Terraform   = "true"
   }
+
 }
