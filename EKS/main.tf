@@ -20,7 +20,7 @@ module "vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    "kubernetes.io/cluster/eks-cluster" = "shared"
+    "kubernetes.io/cluster/eks-cluster" = "owned"
   }
 }
 
@@ -55,3 +55,4 @@ module "eks" {
     Project = "EKS Deployment"
   }
 }
+
