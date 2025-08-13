@@ -72,7 +72,8 @@ pipeline {
             steps {
                 script {
                     dir('EKS/ConfigurationFiles') {
-                        sh 'aws eks update-kubeconfig --name my-eks-cluster'
+                        sh 'aws eks update-kubeconfig --name my-eks-cluster --region ap-south-1'
+                        sh 'aws eks list-clusters --region ap-south-1'
                         sh 'kubectl apply -f deployment.yaml'
                         sh 'kubectl apply -f service.yaml'
                     }
@@ -90,4 +91,5 @@ pipeline {
         }
     }
 }
+
 
