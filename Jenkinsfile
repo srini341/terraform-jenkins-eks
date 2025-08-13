@@ -32,6 +32,14 @@ pipeline {
                 }
             }
         }
+		stage('Validate Terraform') {
+			steps {
+					dir('EKS') {
+						sh 'terraform validate'
+					}
+				}
+		}
+
        stage('Previewing the Infra using Terraform'){
             steps{
                 script{
@@ -51,6 +59,15 @@ pipeline {
                 }
             }
         }
+		post {
+			success {
+				echo 'Terraform apply completed successfully.'
+			}
+			failure {
+				echo 'Terraform failed. Check logs.'
+			}
+		}
+
         stage('Deploying Nginx Application') {
             steps{
                 script{
@@ -64,5 +81,3 @@ pipeline {
         }
     }
 }
-
-
