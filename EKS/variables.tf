@@ -1,17 +1,8 @@
-variable "aws_region" {
-  description = "AWS region to deploy the EKS cluster"
+variable "region" {
   type        = string
-  default     = "us-east-1"
-}
-
-variable "cluster_name" {
-  description = "The name for the EKS cluster"
-  type        = string
-  default     = "eks-cluster"
-}
-
-variable "instance_type" {
-  description = "The EC2 instance type for the EKS worker nodes"
-  type        = string
-  default     = "t3.medium"
+  description = "AWS region to deploy resources"
+  validation {
+    condition     = can(regex("^([a-z]{2}-[a-z]+-\\d)$", var.region))
+    error_message = "Region must be in format like us-west-2 or ap-south-1."
+  }
 }
