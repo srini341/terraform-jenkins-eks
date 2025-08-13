@@ -3,10 +3,10 @@ kind: Deployment
 metadata:
   name: nginx
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: nginx
-  replicas: 1
   template:
     metadata:
       labels:
@@ -16,15 +16,13 @@ spec:
       - name: nginx
         image: nginx
         ports:
-
         - containerPort: 80
         readinessProbe:
-        httpGet:
-          path: /
-          port: 80
-        initialDelaySeconds: 5
-        periodSeconds: 10
-      
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /
