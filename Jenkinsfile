@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     dir('EKS') {
-                        sh 'terraform init'
+                        sh 'terraform init -upgrade'
                     }
                 }
             }
@@ -90,3 +90,4 @@ pipeline {
         }
     }
 }
+
