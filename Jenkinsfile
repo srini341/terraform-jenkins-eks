@@ -61,16 +61,26 @@ pipeline {
             }
         }
         stage('Deploying Nginx Application') {
-            steps{
-                script{
+            steps {
+                script {
                     dir('EKS/ConfigurationFiles') {
+                        // Ensure kubeconfig is set
                         sh 'aws eks update-kubeconfig --name my-eks-cluster'
+        
+                        // Preflight checks
+                        sh 'echo "Current context: $(kubectl config current-context)"'
+                        sh '''
+                            if ! kubectl auth can-i list pods --all-namespaces; then
+                              echo "ERROR: Insufficient RBAC permissions to list pods"
+                              exit 1
+                            fi
+                        '''
+        
+                        // Apply manifests
                         sh 'kubectl apply -f deployment.yaml'
                         sh 'kubectl apply -f service.yaml'
                     }
                 }
             }
         }
-    }
-}
-
+  }
