@@ -82,14 +82,6 @@ module "eks" {
       instance_types   = ["t3.medium"]
     }
   }
-manage_aws_auth = true
-  aws_auth_roles = [
-    {
-      rolearn  = "arn:aws:iam::123456789012:role/my-eks-admin-role"
-      username = "admin"
-      groups   = ["system:masters"]
-    }
-  ]
   cluster_addons = {
   coredns = {
     resolve_conflicts_on_create = "OVERWRITE"
