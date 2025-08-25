@@ -1,7 +1,12 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx
+  labels:
+    app: nginx
+    environment: dev
+    team: sre
 spec:
   replicas: 1
   selector:
@@ -11,21 +16,30 @@ spec:
     metadata:
       labels:
         app: nginx
+        environment: dev
+        team: sre
     spec:
       containers:
-      - name: nginx
-        image: nginx
-        ports:
-        - containerPort: 80
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 15
-          periodSeconds: 20
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
